@@ -8,7 +8,7 @@ var spaceDown = false;
 var start = false;
 var recording = false;
 var downloadpopup = false;
-var premiumuser = false;
+// var premiumuser = false;
 var duration = 6000;
 var instance, instance2, instance3, instance4
 var ids = 1;
