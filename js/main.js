@@ -1,5 +1,4 @@
 $(document).ready(function(){
-  var db = firebase.firestore();
   isSafari = !!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)
   if (isSafari) {
     $("#safari-disclaimer").css({display:"block"});
@@ -54,134 +53,134 @@ $(document).ready(function(){
   })
 
   // Success checkout
-  function checkoutComplete(data) {
-		console.log(data);
-    premiumuser = true;
-		$(".pro-label").addClass("premium-on");
-		$(".pro-label").css({display:"none"});
-		$("#watermark input").attr("disabled", false);
-		$("#watermark input").attr("checked", true);
-		$("#copy").css({display:"none"});
-		if (canvasrecord.getItemById("watermark")) {
-			canvasrecord.getItemById("watermark").set({opacity: 0});
-			canvasrecord.renderAll();
-		}
-		window.setTimeout(function(){
-			$.ajax({
-				type:"GET",
-				crossDomain: true,
-				dataType: 'jsonp',
-				url:"https://checkout.paddle.com/api/1.0/order?checkout_id="+data.eventData.checkout.id,
-				success: function(newdata){
-					console.log(newdata)
-					saveSubscription(newdata.order.subscription_id);
-				}
-			})
-		}, 10000);
-  }
+//   function checkoutComplete(data) {
+// 		console.log(data);
+//     premiumuser = true;
+// 		$(".pro-label").addClass("premium-on");
+// 		$(".pro-label").css({display:"none"});
+// 		$("#watermark input").attr("disabled", false);
+// 		$("#watermark input").attr("checked", true);
+// 		$("#copy").css({display:"none"});
+// 		if (canvasrecord.getItemById("watermark")) {
+// 			canvasrecord.getItemById("watermark").set({opacity: 0});
+// 			canvasrecord.renderAll();
+// 		}
+// 		window.setTimeout(function(){
+// 			$.ajax({
+// 				type:"GET",
+// 				crossDomain: true,
+// 				dataType: 'jsonp',
+// 				url:"https://checkout.paddle.com/api/1.0/order?checkout_id="+data.eventData.checkout.id,
+// 				success: function(newdata){
+// 					console.log(newdata)
+// 					saveSubscription(newdata.order.subscription_id);
+// 				}
+// 			})
+// 		}, 10000);
+//   }
 
-  // Cancel checkout
-  function checkoutClosed(data) {
-    hideUpgradePopup();
-  }
+//   // Cancel checkout
+//   function checkoutClosed(data) {
+//     hideUpgradePopup();
+//   }
 
-  function checkSubscription(id) {
-    if (id == undefined) {
-      return;
-    }
-    $.post("api.php", {request:"check-subscription", id:id}, function(data){
-      if (data == "active") {
-				window.setTimeout(function(){
-					premiumuser = true;
-					$(".pro-label").addClass("premium-on");
-					$(".pro-label").css({display:"none"});
-					$("#watermark input").attr("disabled", false);
-					$("#watermark input").attr("checked", true);
-					$("#copy").css({display:"none"});
-					if (canvasrecord.getItemById("watermark")) {
-						canvasrecord.getItemById("watermark").set({opacity: 0});
-						canvasrecord.renderAll();
-					}
-				}, 100);
-      }
-    })
-  }
+//   function checkSubscription(id) {
+//     if (id == undefined) {
+//       return;
+//     }
+//     $.post("api.php", {request:"check-subscription", id:id}, function(data){
+//       if (data == "active") {
+// 				window.setTimeout(function(){
+// 					premiumuser = true;
+// 					$(".pro-label").addClass("premium-on");
+// 					$(".pro-label").css({display:"none"});
+// 					$("#watermark input").attr("disabled", false);
+// 					$("#watermark input").attr("checked", true);
+// 					$("#copy").css({display:"none"});
+// 					if (canvasrecord.getItemById("watermark")) {
+// 						canvasrecord.getItemById("watermark").set({opacity: 0});
+// 						canvasrecord.renderAll();
+// 					}
+// 				}, 100);
+//       }
+//     })
+//   }
 
-  function saveSubscription(subscription) {
-     $.post("api.php", {request:"get-subscription", id:subscription}, function(data){
-        data = JSON.parse(data);
-        var updateurl = data[0];
-        var cancelurl = data[1];
-        db.collection("users").doc(uid).set({
-            subscription:subscription,
-            cancelurl:cancelurl,
-            updateurl:updateurl
-        });
-     });
-  }
+//   function saveSubscription(subscription) {
+//      $.post("api.php", {request:"get-subscription", id:subscription}, function(data){
+//         data = JSON.parse(data);
+//         var updateurl = data[0];
+//         var cancelurl = data[1];
+//         db.collection("users").doc(uid).set({
+//             subscription:subscription,
+//             cancelurl:cancelurl,
+//             updateurl:updateurl
+//         });
+//      });
+//   }
 
-  Paddle.Setup({
-    vendor: 137741,
-    eventCallback: function(data) {
-      // The data.event will specify the event type
-      if (data.event === "Checkout.PaymentComplete") {
-        checkoutComplete(data);
-      }
-      else if (data.event === "Checkout.Close") {
+//   Paddle.Setup({
+//     vendor: 137741,
+//     eventCallback: function(data) {
+//       // The data.event will specify the event type
+//       if (data.event === "Checkout.PaymentComplete") {
+//         checkoutComplete(data);
+//       }
+//       else if (data.event === "Checkout.Close") {
 
-      }
-    }
-  });
+//       }
+//     }
+//   });
 
-  firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-      uid = user.uid;
-      db.collection("users").doc(uid).get().then((doc) => {
-        signedin = true;
-        if (doc.exists) {
-          cancelurl = doc.data().cancelurl;
-          updateurl = doc.data().updateurl;
-          checkSubscription(doc.data().subscription);
-        }
-      })
-    } else {
-      signedin = false;
-    }
-  });
+//   firebase.auth().onAuthStateChanged((user) => {
+//     if (user) {
+//       uid = user.uid;
+//       db.collection("users").doc(uid).get().then((doc) => {
+//         signedin = true;
+//         if (doc.exists) {
+//           cancelurl = doc.data().cancelurl;
+//           updateurl = doc.data().updateurl;
+//           checkSubscription(doc.data().subscription);
+//         }
+//       })
+//     } else {
+//       signedin = false;
+//     }
+//   });
 
-  // Google sign in
-  function googleSignIn() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then((result) => {
-      var credential = result.credential;
-      var token = credential.accessToken;
-      uid = result.user.uid;
-      hideUpgradePopup();
-      db.collection("users").doc(uid).get().then((doc) => {
-        signedin = true;
-        if (doc.exists) {
-          cancelurl = doc.data().cancelurl;
-          updateurl = doc.data().updateurl;
-          checkSubscription(doc.data().subscription);
-        } else {
-          Paddle.Checkout.open({
-          	product: 743638,
-          	passthrough: '{"user_id": '+uid+'}',
-            successCallback: "checkoutComplete",
-            closeCallback: "checkoutClosed"
-          });
-        }
-      })
-    })
-  }
+//   // Google sign in
+//   function googleSignIn() {
+//     var provider = new firebase.auth.GoogleAuthProvider();
+//     firebase.auth().signInWithPopup(provider).then((result) => {
+//       var credential = result.credential;
+//       var token = credential.accessToken;
+//       uid = result.user.uid;
+//       hideUpgradePopup();
+//       db.collection("users").doc(uid).get().then((doc) => {
+//         signedin = true;
+//         if (doc.exists) {
+//           cancelurl = doc.data().cancelurl;
+//           updateurl = doc.data().updateurl;
+//           checkSubscription(doc.data().subscription);
+//         } else {
+//           Paddle.Checkout.open({
+//           	product: 743638,
+//           	passthrough: '{"user_id": '+uid+'}',
+//             successCallback: "checkoutComplete",
+//             closeCallback: "checkoutClosed"
+//           });
+//         }
+//       })
+//     })
+//   }
 
-  // Log out
-  function logOut(){
-    hideUserDropdown();
-    firebase.auth().signOut().then(() => {
-      // Sign-out successful.
-    })
-  }
+//   // Log out
+//   function logOut(){
+//     hideUserDropdown();
+//     firebase.auth().signOut().then(() => {
+//       // Sign-out successful.
+//     })
+//   }
 
   // Resize the canvas
   function resizeCanvas() {
@@ -637,22 +636,22 @@ $(document).ready(function(){
             }
             canvasrecord.renderAll();
           });
-          fabric.Image.fromURL("assets/watermark.png", function(img) {
-            var watermark = img.set({
-              left: 5,
-              top: canvasrecord.getHeight()-45,
-              id: "watermark",
-              typeThing: "temp",
-              objectCaching: false,
-              absolutePositioned: true,
-              selectable: false
-            });
-            canvasrecord.add(watermark);
-            if ($("#watermark input").is(":checked")) {
-              canvasrecord.getItemById("watermark").set({opacity: 0});
-              canvasrecord.renderAll();
-            }
-          });
+//           fabric.Image.fromURL("assets/watermark.png", function(img) {
+//             var watermark = img.set({
+//               left: 5,
+//               top: canvasrecord.getHeight()-45,
+//               id: "watermark",
+//               typeThing: "temp",
+//               objectCaching: false,
+//               absolutePositioned: true,
+//               selectable: false
+//             });
+//             canvasrecord.add(watermark);
+//             if ($("#watermark input").is(":checked")) {
+//               canvasrecord.getItemById("watermark").set({opacity: 0});
+//               canvasrecord.renderAll();
+//             }
+//           });
       });
   }
 
@@ -692,7 +691,7 @@ $(document).ready(function(){
         fps = 24;
       } else if (fpstype == "30 FPS") {
         fps = 30;
-      } else if (fpstype == "60 FPS" && premiumuser) {
+      } else if (fpstype == "60 FPS") {
         fps = 60;
       }
       var bitrate = $(".select-9 .current").html();
@@ -702,7 +701,7 @@ $(document).ready(function(){
         bitrate = 2500000;
       } else if (bitrate == "720p") {
         bitrate = 5000000;
-      } else if (bitrate == "1080p" && premiumuser) {
+      } else if (bitrate == "1080p") {
         bitrate = 8000000;
       }
       recording = true;
@@ -1602,15 +1601,15 @@ $(document).ready(function(){
     hideUserDropdown();
   }
 
-  function showUpgradePopup() {
-    $("#upgrade-modal").html('<img id="close-upgrade" src="assets/close.svg"><div id="upgrade-emoji">&#10024;</div><div id="upgrade-title">Go PRO</div><div id="upgrade-subtitle">Make the most out of Animockup.</div><div id="upgrade-price">$10<span>/month</span></div><hr><div id="upgrade-items"><div class="upgrade-item"><img src="assets/check.svg"> Remove the watermark</div><div class="upgrade-item"><img src="assets/check.svg"> Access more device mockups</div><div class="upgrade-item"><img src="assets/check.svg"> MP4 and GIF export</div><div class="upgrade-item"><img src="assets/check.svg"> High quality export</div><div class="upgrade-item"><img src="assets/check.svg"> Support the developer</div></div><div id="upgrade-button" class="paddle_button" data-product="743638" data-theme="none">Upgrade</div><div id="sign-in-already">Already have an account? <span id="sign-in-2">Sign in</span></div>');
-    $("#upgrade-popup").addClass("show-upgrade");
-    hideUserDropdown();
-  }
+//   function showUpgradePopup() {
+//     $("#upgrade-modal").html('<img id="close-upgrade" src="assets/close.svg"><div id="upgrade-emoji">&#10024;</div><div id="upgrade-title">Go PRO</div><div id="upgrade-subtitle">Make the most out of Animockup.</div><div id="upgrade-price">$10<span>/month</span></div><hr><div id="upgrade-items"><div class="upgrade-item"><img src="assets/check.svg"> Remove the watermark</div><div class="upgrade-item"><img src="assets/check.svg"> Access more device mockups</div><div class="upgrade-item"><img src="assets/check.svg"> MP4 and GIF export</div><div class="upgrade-item"><img src="assets/check.svg"> High quality export</div><div class="upgrade-item"><img src="assets/check.svg"> Support the developer</div></div><div id="upgrade-button" class="paddle_button" data-product="743638" data-theme="none">Upgrade</div><div id="sign-in-already">Already have an account? <span id="sign-in-2">Sign in</span></div>');
+//     $("#upgrade-popup").addClass("show-upgrade");
+//     hideUserDropdown();
+//   }
 
-  function hideUpgradePopup() {
-    $("#upgrade-popup").removeClass("show-upgrade");
-  }
+//   function hideUpgradePopup() {
+//     $("#upgrade-popup").removeClass("show-upgrade");
+//   }
 
   function showUserDropdown() {
     if (!signedin) {
@@ -1635,21 +1634,21 @@ $(document).ready(function(){
     $("#help-dropdown").removeClass("help-show");
   }
 
-  function toggleWatermark(e) {
-    if (!premiumuser) {
-      e.preventDefault();
-      e.stopPropagation();
-      showUpgradePopup();
-    } else {
-      if (!$(this).is(":checked")) {
-        canvasrecord.getItemById("watermark").set({opacity: 1});
-        canvasrecord.renderAll();
-      } else {
-        canvasrecord.getItemById("watermark").set({opacity: 0});
-        canvasrecord.renderAll();
-      }
-    }
-  }
+//   function toggleWatermark(e) {
+//     if (!premiumuser) {
+//       e.preventDefault();
+//       e.stopPropagation();
+//       showUpgradePopup();
+//     } else {
+//       if (!$(this).is(":checked")) {
+//         canvasrecord.getItemById("watermark").set({opacity: 1});
+//         canvasrecord.renderAll();
+//       } else {
+//         canvasrecord.getItemById("watermark").set({opacity: 0});
+//         canvasrecord.renderAll();
+//       }
+//     }
+//   }
 
   // Zoom in/out of the canvas
   canvas.on('mouse:wheel', function(opt) {
@@ -1832,14 +1831,14 @@ $(document).ready(function(){
     reader.readAsDataURL(file);
   }
 
-  function checkPROOption(e) {
-    if ($(this).children(".pro-label").length > 0) {
-      if (!$(this).children(".pro-label").hasClass("premium-on")) {
-        preventDefault(e);
-        showUpgradePopup();
-      }
-    }
-  }
+//   function checkPROOption(e) {
+//     if ($(this).children(".pro-label").length > 0) {
+//       if (!$(this).children(".pro-label").hasClass("premium-on")) {
+//         preventDefault(e);
+//         showUpgradePopup();
+//       }
+//     }
+//   }
 
   function preventDefault(e) {
     e.preventDefault();
@@ -1869,19 +1868,19 @@ $(document).ready(function(){
   $(document).on("click", "#download", showDownloadPopup);
   $(document).on("click", "#overlay", hideDownloadPopup);
   $(document).on("click", "#close-settings", hideDownloadPopup);
-  $(document).on("click", ".switch", toggleWatermark);
-  $(document).on("change", "#watermark input", toggleWatermark);
+//   $(document).on("click", ".switch", toggleWatermark);
+//   $(document).on("change", "#watermark input", toggleWatermark);
   $(document).on("click", "#download-button", record);
-  $(document).on("click", "#upgrade-overlay", hideUpgradePopup);
-  $(document).on("click", "#close-upgrade", hideUpgradePopup);
+//   $(document).on("click", "#upgrade-overlay", hideUpgradePopup);
+//   $(document).on("click", "#close-upgrade", hideUpgradePopup);
   $(document).on("click", "#upgrade-button", showSignIn);
   $(document).on("click", "#sign-in-button", googleSignIn);
-  $(document).on("click", "#upgrade-dropdown", showUpgradePopup);
+//   $(document).on("click", "#upgrade-dropdown", showUpgradePopup);
   $(document).on("click", "#log-in", showSignIn);
   $(document).on("click", "#user-settings", showUserDropdown);
   $(document).on("click", "#log-out", logOut);
-  $(document).on("mousedown", ".option", checkPROOption);
+//   $(document).on("mousedown", ".option", checkPROOption);
   $(document).on("click", "#help", showHelp);
   $(document).on("click", "#sign-in-2", showSignIn);
-  $(document).on("click", "#copy", showUpgradePopup);
+//   $(document).on("click", "#copy", showUpgradePopup);
 });
